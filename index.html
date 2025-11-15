@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mortgage Calculations</title>
+  <meta name="viewport" content="width=device-width,
+    td:first-child, initial-scale=1" />
+  <style>
+    :root {
+      /* Default: dark theme */
+      --bg: #020617;
+      --card-bg: #020617;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.6);
+      --danger: #f97373;
+    }
+
+    body.light {
+      --bg: #f7f9fb;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-subtle: rgba(148, 163, 184, 0.3);
+      --shadow-soft: 0 16px 30px rgba(15, 23, 42, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 24px 16px 40px;
+      background: radial-gradient(circle at top, #1f2937 0, var(--bg) 55%);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1120px;
+      background: linear-gradient(145deg, var(--card-bg), var(--card-bg));
+      border-radius: 28px;
+      padding: 24px 20px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-subtle);
+    }
+
+    @media (min-width: 900px) {
+      .app {
+        padding: 28px 28px 24px;
+      }
+    }
+
+    .app-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      align-items: center;
+    }
+
+    .app-header-main h1 {
+      font-size: 1.6rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .app-header-main p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .theme-toggle {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg);
+      color: var(--text-main);
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s ease, border-color 0.2s ease,
+        transform 0.1s ease;
+    }
+
+    .theme-toggle:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent-soft);
+    }
+
+    .grid-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top, var(--bg), var(--card-bg));
+      border-radius: 18px;
+      padding: 16px 16px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.25s ease,
+        border-color 0.25s ease,
+        opacity 0.25s ease;
+    }
+
+    .card:not(.fullscreen):hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.55);
+    }
+
+    body.light .card {
+      background: #ffffff;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-align: left;
+    }
+
+    .card-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: left;
+    }
+
+    .tag {
+      margin-left: auto;
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      color: var(--accent);
+      background: rgba(34, 197, 94, 0.08);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    /* Inputs */
+    .grid-inputs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .grid-inputs {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .field-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label span {
+      font-size: 0.7rem;
+      color: #6b7280;
+    }
+
+    .input-shell {
+      position: relative;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid var(--border-subtle);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      padding-inline: 10px 8px;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease,
+        transform 0.12s ease, background 0.25s ease;
+    }
+
+    body.light .input-shell {
+      background: #f8fafc;
+    }
+
+    /* subtle lift for input shells */
+    .input-shell:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .input-shell:focus-within {
+      border-color: rgba(34, 197, 94, 0.8);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .prefix,
+    .suffix {
+      font-size: 0.78rem;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      padding: 8px 6px 8px;
+      font-size: 0.9rem;
+      outline: none;
+      text-align: right;
+      min-width: 0;
+    }
+
+    input::placeholder {
+      color: #4b5563;
+    }
+
+    .slider {
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    /* Results */
+    .results {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .results p {
+      font-size: 0.84rem;
+      margin: 2px 0;
+    }
+
+    .results strong {
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.76rem;
+    }
+
+    .results span {
+      font-size: 0.96rem;
+    }
+
+    .highlight {
+      font-size: 1.15rem !important;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.92);
+    }
+
+    body.light .badge {
+      background: #f1f5f9;
+      color: #475569;
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .badge b {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .muted {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      margin-top: 6px;
+    }
+
+    /* Mortgage extras */
+    .grid-secondary {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-secondary {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    table {
+      position: relative;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      margin-top: 8px;
+    }
+
+    th,
+    td {
+      padding: 4px 6px;
+      text-align: right;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      background: var(--card-bg);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(15, 23, 42, 0.3);
+    }
+
+    body.light tbody tr:nth-child(odd) {
+      background: #f8fafc;
+    }
+
+    .table-container {
+      max-height: 260px;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      margin-top: 6px;
+    }
+
+    .pill-danger {
+      color: var(--danger);
+      font-size: 0.75rem;
+    }
+
+    .card.fullscreen {
+      position: fixed;
+      inset: 16px;
+      width: auto;
+      height: auto;
+      max-width: none;
+      max-height: none;
+      z-index: 10001;
+      overflow: auto;
+      padding: 24px 20px 24px;
+      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.9);
+      transform: translate3d(0, 0, 0) scale(1);
+      animation: fullscreenIn 0.22s ease-out;
+    }
+
+    .fs-btn {
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      transition: transform 0.15s ease;
+    }
+
+    .fs-btn:hover {
+      transform: scale(1.12);
+    }
+
+    body.light .fs-btn {
+      background: rgba(248, 250, 252, 0.92);
+    }
+
+    .fullscreen-close { display: none; }
+    .card.fullscreen .fullscreen-close { display: inline-block; }
+    .card.fullscreen .fullscreen-open { display: none; }
+
+    .app::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.0);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10000;
+      transition: opacity 0.25s ease;
+    }
+
+    body.fullscreen-active .app::before {
+      opacity: 1;
+      background: rgba(15, 23, 42, 0.75);
+      pointer-events: auto;
+    }
+
+    body.fullscreen-active {
+      overflow: hidden;
+    }
+
+    @keyframes fullscreenIn {
+      from {
+        transform: translate3d(0, 8px, 0) scale(0.97);
+        opacity: 0;
+      }
+      to {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: 1;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="app-header-main">
+        <h1>Mortgage Calculator</h1>
+        <p>Robert Samson 2025</p>
+      </div>
+      <button id="theme-toggle" class="theme-toggle" type="button">Light theme</button>
+    </header>
+
+    <!-- MAIN GRID: Mortgage inputs + results -->
+    <section class="grid-main">
+      <!-- Inputs -->
+      <section class="card">
+        <div class="card-header">
+          <div class="fs-actions">
+            <button class="fs-btn fullscreen-open">⤢</button>
+            <button class="fs-btn fullscreen-close">×</button>
+          </div>
+          <div>
+            <div class="card-title">Mortgage inputs</div>
+            <div class="card-subtitle">Adjust any value to update all results.</div>
+          </div>
+          <span class="tag">Live calc</span>
+        </div>
+
+        <div class="grid-inputs">
+          <div class="field">
+            <div class="field-label">
+              Home value €
+              <span>Total purchase price</span>
+            </div>
+            <div class="input-shell">
+              <span class="prefix">€</span>
+              <input id="home-value" type="number" min="0" step="1000" value="500000" />
+            </div>
+            <input id="home-value-slider" class="slider" type="range" min="50000" max="2000000" step="5000" value="500000" />
+          </div>
+
+          <div class="field">
+            <div class="field-label">
+              Down payment €
+              <span>Paid upfront</span>
+            </div>
+            <div class="input-shell">
+              <span class="prefix">€</span>
+              <input id="down-payment" type="number" min="0" step="1000" value="100000" />
+            </div>
+            <input id="down-payment-slider" class="slider" type="range" min="0" max="500000" step="5000" value="100000" />
+          </div>
+
+          <div class="field">
+            <div class="field-label">
+              APR %
+              <span>Nominal annual rate</span>
+            </div>
+            <div class="input-shell">
+              <input id="apr" type="number" min="0" max="20" step="0.01" value="5" />
+              <span class="suffix">%</span>
+            </div>
+            <input id="apr-slider" class="slider" type="range" min="0.1" max="15" step="0.05" value="5" />
+          </div>
+
+          <div class="field">
+            <div class="field-label">
+              Term
+              <span>Years</span>
+            </div>
+            <div class="input-shell">
+              <input id="years" type="number" min="1" max="60" step="1" value="30" />
+              <span class="suffix">yrs</span>
+            </div>
+            <input id="years-slider" class="slider" type="range" min="5" max="50" step="1" value="30" />
+          </div>
+        </div>
+
+        <p class="muted">
+          EAR = (1 + APR/12)<sup>12</sup> − 1. Monthly rate used for the loan is EAR ÷ 12.
+        </p>
+      </section>
+
+      <!-- Results -->
+      <section class="card">
+        <div class="card-header">
+          <div class="fs-actions">
+            <button class="fs-btn fullscreen-open">⤢</button>
+            <button class="fs-btn fullscreen-close">×</button>
+          </div>
+          <div>
+            <div class="card-title">Mortgage results</div>
+            <div class="card-subtitle">Payment & totals.</div>
+          </div>
+        </div>
+
+        <div class="results">
+          <p>
+            <strong>Monthly mortgage payment</strong>
+            <span id="monthly-payment" class="highlight">€ 0,00</span>
+          </p>
+
+          <div class="badge-row">
+            <span class="badge">Loan amount: <b id="loan-amount">€ 0,00</b></span>
+            <span class="badge">Term: <b><span id="months">0</span> months</b></span>
+          </div>
+
+          <p>
+            <strong>EAR</strong>
+            <span id="ear">0.000000%</span>
+          </p>
+          <p>
+            <strong>Monthly interest (EAR/12)</strong>
+            <span id="monthly-interest">0.000000%</span>
+          </p>
+          <p>
+            <strong>Future home value (EAR growth)</strong>
+            <span id="future-value">€ 0,00</span>
+          </p>
+          <p>
+            <strong>Total paid (loan + down)</strong>
+            <span id="total-paid">€ 0,00</span>
+          </p>
+        </div>
+      </section>
+    </section>
+
+    <!-- AMORTIZATION + CHART -->
+    <section class="grid-secondary">
+      <section class="card">
+        <div class="card-header">
+          <div class="fs-actions">
+            <button class="fs-btn fullscreen-open">⤢</button>
+            <button class="fs-btn fullscreen-close">×</button>
+          </div>
+          <div>
+            <div class="card-title">Amortization schedule</div>
+            <div class="card-subtitle">Per-month principal & interest.</div>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:left">Year</th>
+                <th style="text-align:left">Month</th>
+                <th>Payment</th>
+                <th>Interest</th>
+                <th>Principal</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody id="amort-body">
+              <!-- rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">
+          Scroll for full schedule. Values are rounded.
+        </p>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div class="fs-actions">
+            <button class="fs-btn fullscreen-open">⤢</button>
+            <button class="fs-btn fullscreen-close">×</button>
+          </div>
+          <div>
+            <div class="card-title">Balance over time</div>
+            <div class="card-subtitle">Loan balance vs month.</div>
+          </div>
+        </div>
+        <canvas id="balance-chart" height="200"></canvas>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    /* ---------- helpers ---------- */
+    function formatCurrency(v) {
+      return v.toLocaleString("de-DE", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function safeNumber(id) {
+      var el = document.getElementById(id);
+      if (!el) return 0;
+      var raw = typeof el.value === "string" ? el.value.replace(",", ".") : el.value;
+      var val = parseFloat(raw);
+      return isNaN(val) ? 0 : val;
+    }
+
+    /* ---------- mortgage calc + amortization ---------- */
+    var balanceChart = null;
+
+    function buildAmortization(loan, monthlyRate, months, payment) {
+      var rows = [];
+      var balance = loan;
+      for (var m = 1; m <= months; m++) {
+        var interest = balance * monthlyRate;
+        var principal = payment - interest;
+        if (principal < 0) principal = 0;
+        balance = balance - principal;
+        if (balance < 0) balance = 0;
+        rows.push({
+          month: m,
+          payment: payment,
+          interest: interest,
+          principal: principal,
+          balance: balance
+        });
+        if (balance <= 0) break;
+      }
+      return rows;
+    }
+
+    function updateMortgage() {
+      var home = safeNumber("home-value");
+      var down = safeNumber("down-payment");
+      var aprPercent = safeNumber("apr");
+      var years = safeNumber("years");
+
+      var loan = Math.max(home - down, 0);
+      var months = Math.max(Math.round(years * 12), 0);
+      var apr = aprPercent / 100;
+      var EAR = Math.pow(1 + apr / 12, 12) - 1;
+      var monthlyRate = EAR / 12;
+
+      var payment = 0;
+      if (loan > 0 && monthlyRate > 0 && months > 0) {
+        payment = (loan * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
+      }
+
+      var futureValue = home * Math.pow(1 + EAR, years);
+      var totalPaid = down + payment * months;
+
+      // update DOM
+      var loanAmountEl = document.getElementById("loan-amount");
+      var monthsEl = document.getElementById("months");
+      var earEl = document.getElementById("ear");
+      var monthlyInterestEl = document.getElementById("monthly-interest");
+      var monthlyPaymentEl = document.getElementById("monthly-payment");
+      var futureValueEl = document.getElementById("future-value");
+      var totalPaidEl = document.getElementById("total-paid");
+
+      if (loanAmountEl) loanAmountEl.textContent = formatCurrency(loan);
+      if (monthsEl) monthsEl.textContent = months.toString();
+      if (earEl) earEl.textContent = (EAR * 100 || 0).toFixed(6) + "%";
+      if (monthlyInterestEl) monthlyInterestEl.textContent = (monthlyRate * 100 || 0).toFixed(6) + "%";
+      if (monthlyPaymentEl) monthlyPaymentEl.textContent = formatCurrency(payment);
+      if (futureValueEl) futureValueEl.textContent = formatCurrency(futureValue || 0);
+      if (totalPaidEl) totalPaidEl.textContent = formatCurrency(totalPaid || 0);
+
+      // amortization table
+      var amortBody = document.getElementById("amort-body");
+      if (amortBody) {
+        amortBody.innerHTML = "";
+      }
+      if (loan > 0 && monthlyRate > 0 && months > 0 && amortBody) {
+        var schedule = buildAmortization(loan, monthlyRate, months, payment);
+        schedule.forEach(function (row) {
+          var tr = document.createElement("tr");
+          var year = Math.ceil(row.month / 12); // 1-12 => 1, 13-24 => 2, etc.
+          var monthInYear = ((row.month - 1) % 12) + 1; // 1..12 every year
+          var yearDisplay = monthInYear === 1 ? year : "";
+          var cells = [
+            yearDisplay,
+            monthInYear,
+            formatCurrency(row.payment),
+            formatCurrency(row.interest),
+            formatCurrency(row.principal),
+            formatCurrency(row.balance)
+          ];
+          cells.forEach(function (val, idx) {
+            var td = document.createElement("td");
+            if (idx === 0 || idx === 1) {
+              td.style.textAlign = "left";
+            }
+            td.textContent = val;
+            tr.appendChild(td);
+          });
+          amortBody.appendChild(tr);
+        });
+
+        // chart data (x-axis in years)
+        var canvas = document.getElementById("balance-chart");
+        if (canvas && canvas.getContext) {
+          var ctx = canvas.getContext("2d");
+          if (balanceChart) balanceChart.destroy();
+          balanceChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              datasets: [
+                {
+                  label: "Balance",
+                  data: schedule.map(function (r) {
+                    return { x: r.month / 12, y: r.balance };
+                  }),
+                  tension: 0.15,
+                  borderWidth: 2,
+                  fill: false,
+                  parsing: false
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false }
+              },
+              scales: {
+                x: {
+                  type: "linear",
+                  title: {
+                    display: true,
+                    text: "Years"
+                  },
+                  ticks: {
+                    stepSize: 1,
+                    callback: function (value) {
+                      return value + " yrs";
+                    }
+                  }
+                },
+                y: {
+                  ticks: {
+                    callback: function (value) {
+                      return value.toLocaleString("de-DE");
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
+      }
+
+      // save mortgage inputs
+      var state = {
+        home: home,
+        down: down,
+        aprPercent: aprPercent,
+        years: years
+      };
+      try {
+        localStorage.setItem("mortgageState", JSON.stringify(state));
+      } catch (e) {
+        // ignore storage errors (e.g. private mode)
+      }
+    }
+
+    /* ---------- basic tests (console only) ---------- */
+    (function runMortgageTests() {
+      try {
+        // Test: amortization should end with near-zero balance
+        var loan = 100000;
+        var apr = 5 / 100;
+        var EAR = Math.pow(1 + apr / 12, 12) - 1;
+        var monthlyRate = EAR / 12;
+        var months = 360; // 30 years
+        var payment = (loan * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
+        var schedule = buildAmortization(loan, monthlyRate, months, payment);
+        var last = schedule[schedule.length - 1];
+        console.assert(Math.abs(last.balance) < 1, "Amortization test: final balance should be ~0");
+
+        // Test: formatCurrency basic sanity check
+        console.assert(
+          typeof formatCurrency(1234.56) === "string",
+          "formatCurrency test: output should be string"
+        );
+
+        // Test: year calculation logic (1-12 => 1, 13-24 => 2, etc.)
+        console.assert(Math.ceil(1 / 12) === 1, "Year calc test: month 1 should be year 1");
+        console.assert(Math.ceil(12 / 12) === 1, "Year calc test: month 12 should be year 1");
+        console.assert(Math.ceil(13 / 12) === 2, "Year calc test: month 13 should be year 2");
+        console.assert(Math.ceil(24 / 12) === 2, "Year calc test: month 24 should be year 2");
+
+        // Test: month-in-year calculation (1-12 each year)
+        function monthInYearFn(m) { return ((m - 1) % 12) + 1; }
+        console.assert(monthInYearFn(1) === 1, "Month-in-year test: 1 -> 1");
+        console.assert(monthInYearFn(12) === 12, "Month-in-year test: 12 -> 12");
+        console.assert(monthInYearFn(13) === 1, "Month-in-year test: 13 -> 1");
+        console.assert(monthInYearFn(24) === 12, "Month-in-year test: 24 -> 12");
+      } catch (err) {
+        console.error("Mortgage tests failed", err);
+      }
+    })();
+
+    /* ---------- theme + init ---------- */
+    window.addEventListener("DOMContentLoaded", function () {
+      // restore mortgage state if any
+      try {
+        var saved = localStorage.getItem("mortgageState");
+        if (saved) {
+          var s = JSON.parse(saved);
+          [
+            ["home-value", "home"],
+            ["down-payment", "down"],
+            ["apr", "aprPercent"],
+            ["years", "years"]
+          ].forEach(function (pair) {
+            var id = pair[0];
+            var key = pair[1];
+            if (s && s[key] != null) {
+              var el = document.getElementById(id);
+              if (el) el.value = s[key];
+            }
+          });
+        }
+      } catch (e) {
+        // ignore storage issues
+      }
+
+      function attachInputSync(idNumber, idSlider) {
+        var numEl = document.getElementById(idNumber);
+        var sliderEl = document.getElementById(idSlider);
+        if (!numEl || !sliderEl) return;
+        numEl.addEventListener("input", function () {
+          if (!isNaN(parseFloat(numEl.value))) {
+            sliderEl.value = numEl.value;
+          }
+          updateMortgage();
+        });
+        sliderEl.addEventListener("input", function () {
+          numEl.value = sliderEl.value;
+          updateMortgage();
+        });
+      }
+
+      // sync sliders
+      attachInputSync("home-value", "home-value-slider");
+      attachInputSync("down-payment", "down-payment-slider");
+      attachInputSync("apr", "apr-slider");
+      attachInputSync("years", "years-slider");
+
+      // theme toggle
+      var themeToggleBtn = document.getElementById("theme-toggle");
+
+      function updateThemeLabel() {
+        if (!themeToggleBtn) return;
+        themeToggleBtn.textContent = document.body.classList.contains("light")
+          ? "Dark theme"
+          : "Light theme";
+      }
+
+      function applySavedTheme() {
+        try {
+          var savedTheme = localStorage.getItem("themeMode");
+          if (savedTheme === "light") {
+            document.body.classList.add("light");
+          }
+        } catch (e) {
+          // ignore storage issues
+        }
+        updateThemeLabel();
+      }
+
+      if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", function () {
+          document.body.classList.toggle("light");
+          try {
+            localStorage.setItem(
+              "themeMode",
+              document.body.classList.contains("light") ? "light" : "dark"
+            );
+          } catch (e) {
+            // ignore storage issues
+          }
+          updateThemeLabel();
+        });
+      }
+
+      applySavedTheme();
+
+      // fullscreen toggle
+      function updateBodyFullscreenState() {
+        if (document.querySelector('.card.fullscreen')) {
+          document.body.classList.add('fullscreen-active');
+        } else {
+          document.body.classList.remove('fullscreen-active');
+        }
+      }
+
+      document.querySelectorAll('.card').forEach(function(card){
+        var openBtn = card.querySelector('.fullscreen-open');
+        var closeBtn = card.querySelector('.fullscreen-close');
+        if (openBtn) {
+          openBtn.addEventListener('click', function(){
+            card.classList.add('fullscreen');
+            updateBodyFullscreenState();
+          });
+        }
+        if (closeBtn) {
+          closeBtn.addEventListener('click', function(){
+            card.classList.remove('fullscreen');
+            updateBodyFullscreenState();
+          });
+        }
+      });
+
+      // close fullscreen on ESC
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          var any = false;
+          document.querySelectorAll('.card.fullscreen').forEach(function (card) {
+            any = true;
+            card.classList.remove('fullscreen');
+          });
+          if (any) {
+            updateBodyFullscreenState();
+          }
+        }
+      });
+
+      // initial calculation
+      updateMortgage();
+    });
+  </script>
+</body>
+</html>
