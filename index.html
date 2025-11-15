@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Mortgage Calculations</title>
-  <meta name="viewport" content="width=device-width,
-    td:first-child, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
       /* Default: dark theme */
@@ -84,6 +83,12 @@
       color: var(--text-muted);
     }
 
+    .header-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
     .theme-toggle {
       padding: 6px 14px;
       border-radius: 999px;
@@ -102,6 +107,42 @@
     .theme-toggle:hover {
       transform: translateY(-1px);
       border-color: var(--accent-soft);
+    }
+
+    .currency-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    body.light .currency-switch {
+      background: rgba(248, 250, 252, 0.95);
+    }
+
+    .currency-btn {
+      border: none;
+      background: transparent;
+      padding: 4px 9px;
+      font-size: 0.75rem;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+    }
+
+    .currency-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .currency-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
     }
 
     .grid-main {
@@ -222,7 +263,6 @@
       background: #f8fafc;
     }
 
-    /* subtle lift for input shells */
     .input-shell:hover {
       transform: translateY(-2px);
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
@@ -239,6 +279,11 @@
       font-size: 0.78rem;
       color: #6b7280;
       white-space: nowrap;
+    }
+
+    .currency-prefix {
+      min-width: 1.3em;
+      text-align: center;
     }
 
     input[type="number"],
@@ -456,6 +501,72 @@
         opacity: 1;
       }
     }
+      @media (max-width: 600px) {
+      body {
+        padding: 16px 10px 24px;
+        align-items: stretch;
+        justify-content: flex-start;
+      }
+
+      .app {
+        padding: 18px 14px 18px;
+        border-radius: 20px;
+      }
+
+      .app-header {
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .app-header-main h1 {
+        font-size: 1.3rem;
+      }
+
+      .header-controls {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        row-gap: 6px;
+      }
+
+      .currency-switch {
+        flex: 1 1 auto;
+        justify-content: space-between;
+      }
+
+      .theme-toggle {
+        padding-inline: 10px;
+        white-space: nowrap;
+      }
+
+      .card {
+        padding: 14px 12px 12px;
+      }
+
+      .card-header {
+        align-items: flex-start;
+      }
+
+      .grid-main {
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+
+      .grid-secondary {
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .table-container {
+        max-height: 220px;
+      }
+
+      /* disable hover lift on touch-sized screens */
+      .card:not(.fullscreen):hover {
+        transform: none;
+        box-shadow: none;
+      }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -466,7 +577,15 @@
         <h1>Mortgage Calculator</h1>
         <p>Robert Samson 2025</p>
       </div>
-      <button id="theme-toggle" class="theme-toggle" type="button">Light theme</button>
+
+      <div class="header-controls">
+        <div class="currency-switch" aria-label="Currency">
+          <button class="currency-btn active" type="button" data-currency="EUR">EUR</button>
+          <button class="currency-btn" type="button" data-currency="USD">USD</button>
+          <button class="currency-btn" type="button" data-currency="GBP">GBP</button>
+        </div>
+        <button id="theme-toggle" class="theme-toggle" type="button">Light theme</button>
+      </div>
     </header>
 
     <!-- MAIN GRID: Mortgage inputs + results -->
@@ -488,11 +607,11 @@
         <div class="grid-inputs">
           <div class="field">
             <div class="field-label">
-              Home value €
-              <span>Total purchase price</span>
+              Home value
+              <span>In selected currency</span>
             </div>
             <div class="input-shell">
-              <span class="prefix">€</span>
+              <span class="prefix currency-prefix">€</span>
               <input id="home-value" type="number" min="0" step="1000" value="500000" />
             </div>
             <input id="home-value-slider" class="slider" type="range" min="50000" max="2000000" step="5000" value="500000" />
@@ -500,11 +619,11 @@
 
           <div class="field">
             <div class="field-label">
-              Down payment €
+              Down payment
               <span>Paid upfront</span>
             </div>
             <div class="input-shell">
-              <span class="prefix">€</span>
+              <span class="prefix currency-prefix">€</span>
               <input id="down-payment" type="number" min="0" step="1000" value="100000" />
             </div>
             <input id="down-payment-slider" class="slider" type="range" min="0" max="500000" step="5000" value="100000" />
@@ -556,11 +675,11 @@
         <div class="results">
           <p>
             <strong>Monthly mortgage payment</strong>
-            <span id="monthly-payment" class="highlight">€ 0,00</span>
+            <span id="monthly-payment" class="highlight">—</span>
           </p>
 
           <div class="badge-row">
-            <span class="badge">Loan amount: <b id="loan-amount">€ 0,00</b></span>
+            <span class="badge">Loan amount: <b id="loan-amount">—</b></span>
             <span class="badge">Term: <b><span id="months">0</span> months</b></span>
           </div>
 
@@ -574,11 +693,11 @@
           </p>
           <p>
             <strong>Future home value (EAR growth)</strong>
-            <span id="future-value">€ 0,00</span>
+            <span id="future-value">—</span>
           </p>
           <p>
             <strong>Total paid (loan + down)</strong>
-            <span id="total-paid">€ 0,00</span>
+            <span id="total-paid">—</span>
           </p>
         </div>
       </section>
@@ -636,11 +755,25 @@
   </div>
 
   <script>
+    /* ---------- currency config ---------- */
+    var currentCurrency = "EUR";
+
+    var currencyConfig = {
+      EUR: { locale: "de-DE", currency: "EUR", symbol: "€" },
+      USD: { locale: "en-US", currency: "USD", symbol: "$" },
+      GBP: { locale: "en-GB", currency: "GBP", symbol: "£" }
+    };
+
+    function getCurrencyConfig() {
+      return currencyConfig[currentCurrency] || currencyConfig.EUR;
+    }
+
     /* ---------- helpers ---------- */
     function formatCurrency(v) {
-      return v.toLocaleString("de-DE", {
+      var cfg = getCurrencyConfig();
+      return v.toLocaleString(cfg.locale, {
         style: "currency",
-        currency: "EUR",
+        currency: cfg.currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
@@ -652,6 +785,30 @@
       var raw = typeof el.value === "string" ? el.value.replace(",", ".") : el.value;
       var val = parseFloat(raw);
       return isNaN(val) ? 0 : val;
+    }
+
+    function applyCurrencyUI() {
+      // update currency prefix symbols
+      var cfg = getCurrencyConfig();
+      document.querySelectorAll(".currency-prefix").forEach(function (el) {
+        el.textContent = cfg.symbol;
+      });
+
+      // update toggle button active state
+      document.querySelectorAll(".currency-btn").forEach(function (btn) {
+        var code = btn.getAttribute("data-currency");
+        btn.classList.toggle("active", code === currentCurrency);
+      });
+
+      // re-render all currency values with new formatting
+      updateMortgage();
+
+      // persist selection
+      try {
+        localStorage.setItem("currencyCode", currentCurrency);
+      } catch (e) {
+        // ignore storage errors
+      }
     }
 
     /* ---------- mortgage calc + amortization ---------- */
@@ -684,6 +841,18 @@
       var aprPercent = safeNumber("apr");
       var years = safeNumber("years");
 
+      // keep down-payment slider in sync with home value
+      var downSlider = document.getElementById("down-payment-slider");
+      var downInput = document.getElementById("down-payment");
+      if (downSlider && home > 0) {
+        downSlider.max = home;
+        if (down > home) {
+          down = home;
+          if (downInput) downInput.value = home;
+          downSlider.value = home;
+        }
+      }
+
       var loan = Math.max(home - down, 0);
       var months = Math.max(Math.round(years * 12), 0);
       var apr = aprPercent / 100;
@@ -691,8 +860,14 @@
       var monthlyRate = EAR / 12;
 
       var payment = 0;
-      if (loan > 0 && monthlyRate > 0 && months > 0) {
-        payment = (loan * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
+      if (loan > 0 && months > 0) {
+        if (monthlyRate > 0) {
+          // standard annuity formula
+          payment = (loan * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -months));
+        } else {
+          // 0% APR: simple linear repayment
+          payment = loan / months;
+        }
       }
 
       var futureValue = home * Math.pow(1 + EAR, years);
@@ -711,7 +886,7 @@
       if (monthsEl) monthsEl.textContent = months.toString();
       if (earEl) earEl.textContent = (EAR * 100 || 0).toFixed(6) + "%";
       if (monthlyInterestEl) monthlyInterestEl.textContent = (monthlyRate * 100 || 0).toFixed(6) + "%";
-      if (monthlyPaymentEl) monthlyPaymentEl.textContent = formatCurrency(payment);
+      if (monthlyPaymentEl) monthlyPaymentEl.textContent = formatCurrency(payment || 0);
       if (futureValueEl) futureValueEl.textContent = formatCurrency(futureValue || 0);
       if (totalPaidEl) totalPaidEl.textContent = formatCurrency(totalPaid || 0);
 
@@ -720,7 +895,7 @@
       if (amortBody) {
         amortBody.innerHTML = "";
       }
-      if (loan > 0 && monthlyRate > 0 && months > 0 && amortBody) {
+      if (loan > 0 && months > 0 && amortBody) {
         var schedule = buildAmortization(loan, monthlyRate, months, payment);
         schedule.forEach(function (row) {
           var tr = document.createElement("tr");
@@ -789,7 +964,7 @@
                 y: {
                   ticks: {
                     callback: function (value) {
-                      return value.toLocaleString("de-DE");
+                      return value.toLocaleString(getCurrencyConfig().locale);
                     }
                   }
                 }
@@ -852,6 +1027,16 @@
 
     /* ---------- theme + init ---------- */
     window.addEventListener("DOMContentLoaded", function () {
+      // restore currency
+      try {
+        var savedCurrency = localStorage.getItem("currencyCode");
+        if (savedCurrency && currencyConfig[savedCurrency]) {
+          currentCurrency = savedCurrency;
+        }
+      } catch (e) {
+        // ignore
+      }
+
       // restore mortgage state if any
       try {
         var saved = localStorage.getItem("mortgageState");
@@ -897,6 +1082,16 @@
       attachInputSync("apr", "apr-slider");
       attachInputSync("years", "years-slider");
 
+      // currency buttons
+      document.querySelectorAll(".currency-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var code = btn.getAttribute("data-currency");
+          if (!code || !currencyConfig[code]) return;
+          currentCurrency = code;
+          applyCurrencyUI();
+        });
+      });
+
       // theme toggle
       var themeToggleBtn = document.getElementById("theme-toggle");
 
@@ -938,37 +1133,37 @@
 
       // fullscreen toggle
       function updateBodyFullscreenState() {
-        if (document.querySelector('.card.fullscreen')) {
-          document.body.classList.add('fullscreen-active');
+        if (document.querySelector(".card.fullscreen")) {
+          document.body.classList.add("fullscreen-active");
         } else {
-          document.body.classList.remove('fullscreen-active');
+          document.body.classList.remove("fullscreen-active");
         }
       }
 
-      document.querySelectorAll('.card').forEach(function(card){
-        var openBtn = card.querySelector('.fullscreen-open');
-        var closeBtn = card.querySelector('.fullscreen-close');
+      document.querySelectorAll(".card").forEach(function (card) {
+        var openBtn = card.querySelector(".fullscreen-open");
+        var closeBtn = card.querySelector(".fullscreen-close");
         if (openBtn) {
-          openBtn.addEventListener('click', function(){
-            card.classList.add('fullscreen');
+          openBtn.addEventListener("click", function () {
+            card.classList.add("fullscreen");
             updateBodyFullscreenState();
           });
         }
         if (closeBtn) {
-          closeBtn.addEventListener('click', function(){
-            card.classList.remove('fullscreen');
+          closeBtn.addEventListener("click", function () {
+            card.classList.remove("fullscreen");
             updateBodyFullscreenState();
           });
         }
       });
 
       // close fullscreen on ESC
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
           var any = false;
-          document.querySelectorAll('.card.fullscreen').forEach(function (card) {
+          document.querySelectorAll(".card.fullscreen").forEach(function (card) {
             any = true;
-            card.classList.remove('fullscreen');
+            card.classList.remove("fullscreen");
           });
           if (any) {
             updateBodyFullscreenState();
@@ -976,8 +1171,8 @@
         }
       });
 
-      // initial calculation
-      updateMortgage();
+      // initial currency styling + calculation
+      applyCurrencyUI();
     });
   </script>
 </body>
