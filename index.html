@@ -222,6 +222,110 @@
     }
 
     @media (max-width: 600px) {
+      /* shrink padding on mobile */
+      body {
+        padding: 10px 6px 16px;
+        font-size: 0.9rem;
+      }
+
+      .app {
+        padding: 12px 10px;
+        border-radius: 16px;
+      }
+
+      .card {
+        padding: 10px 10px 8px;
+      }
+
+      .card-header {
+        margin-bottom: 6px;
+      }
+
+      .grid-main {
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .grid-secondary {
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .table-container {
+        max-height: 200px;
+        margin-top: 4px;
+      }
+
+      /* existing mobile text-size rules */
+      /* smaller base font on mobile */
+      body {
+        font-size: 0.9rem;
+      }
+
+      .card-title {
+        font-size: 0.8rem;
+      }
+
+      .card-subtitle,
+      .muted,
+      .field-label,
+      .results strong {
+        font-size: 0.7rem;
+      }
+
+      .results span,
+      /* Hide default number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Minimalist +/- buttons */
+.input-shell .stepper {
+  display: flex;
+  flex-direction: column;
+  margin-left: 6px;
+}
+.stepper button {
+  all: unset;
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 2px 4px;
+  color: var(--text-muted);
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.stepper button:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text-main);
+}
+
+/* Hide default number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"],
+      input[type="text"] {
+        font-size: 0.85rem;
+      }
+
+      table {
+        font-size: 0.68rem;
+      }
+
+      th {
+        font-size: 0.65rem;
+      }
       .grid-inputs {
         grid-template-columns: minmax(0, 1fr);
       }
@@ -332,6 +436,58 @@
       font-size: 0.96rem;
     }
 
+    .tip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      margin-left: 4px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      font-size: 0.65rem;
+      line-height: 1;
+      color: var(--text-muted);
+      cursor: default;
+      position: relative;
+    }
+
+    .tip-icon::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 130%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.96);
+      color: #e5e7eb;
+      font-size: 0.7rem;
+      white-space: normal;
+      min-width: 160px;
+      max-width: 260px;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+      transition: opacity 0.15s ease;
+      z-index: 30;
+    }
+
+    body.light .tip-icon::after {
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    .tip-icon:hover::after,
+    .tip-icon:focus-visible::after {
+      opacity: 1;
+    }
+
+    .tip-icon:focus-visible {
+      outline: 1px solid var(--accent);
+      outline-offset: 2px;
+    }
+
     .highlight {
       font-size: 1.15rem !important;
       font-weight: 600;
@@ -395,7 +551,7 @@
 
     th,
     td {
-      padding: 4px 6px;
+      padding: 2px 4px;
       text-align: right;
     }
 
@@ -427,6 +583,13 @@
       margin-top: 6px;
     }
 
+    .card.fullscreen .table-container {
+      flex: 1;
+      max-height: none;
+      margin-top: 10px;
+      min-height: 0;
+    }
+
     .pill-danger {
       color: var(--danger);
       font-size: 0.75rem;
@@ -434,17 +597,25 @@
 
     .card.fullscreen {
       position: fixed;
-      inset: 16px;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
       width: auto;
-      height: auto;
       max-width: none;
       max-height: none;
       z-index: 10001;
-      overflow: auto;
-      padding: 24px 20px 24px;
+      padding: 16px 16px 12px;
       box-shadow: 0 24px 80px rgba(15, 23, 42, 0.9);
+      border-radius: 18px;
+      background: radial-gradient(circle at top, var(--bg), var(--card-bg));
       transform: translate3d(0, 0, 0) scale(1);
       animation: fullscreenIn 0.22s ease-out;
+
+      /* fullscreen = header at top, content fills rest */
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .fs-btn {
@@ -561,11 +732,58 @@
         max-height: 220px;
       }
 
+      /* hide fullscreen buttons on mobile */
+      .fs-actions {
+        display: none;
+      }
+
+      /* switch table + chart order on mobile */
+      .grid-secondary > section:nth-child(1) {
+        order: 2;
+      }
+      .grid-secondary > section:nth-child(2) {
+        order: 1;
+      }
+
+      /* disable hover lift on touch-sized screens */
+      .fs-actions {
+        display: none;
+      }
+
       /* disable hover lift on touch-sized screens */
       .card:not(.fullscreen):hover {
         transform: none;
         box-shadow: none;
       }
+    }
+      /* Global minimalist +/- stepper styles */
+    .input-shell .stepper {
+      display: flex;
+      flex-direction: column;
+      margin-left: 6px;
+    }
+    .stepper button {
+      all: unset;
+      cursor: pointer;
+      font-size: 0.7rem;
+      padding: 2px 4px;
+      color: var(--text-muted);
+      border-radius: 4px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .stepper button:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    /* Ensure default number spinners are hidden across browsers */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -593,10 +811,6 @@
       <!-- Inputs -->
       <section class="card">
         <div class="card-header">
-          <div class="fs-actions">
-            <button class="fs-btn fullscreen-open">⤢</button>
-            <button class="fs-btn fullscreen-close">×</button>
-          </div>
           <div>
             <div class="card-title">Mortgage inputs</div>
             <div class="card-subtitle">Adjust any value to update all results.</div>
@@ -613,6 +827,10 @@
             <div class="input-shell">
               <span class="prefix currency-prefix">€</span>
               <input id="home-value" type="number" min="0" step="1000" value="500000" />
+              <div class="stepper">
+                <button type="button" class="step-up">+</button>
+                <button type="button" class="step-down">−</button>
+              </div>
             </div>
             <input id="home-value-slider" class="slider" type="range" min="50000" max="2000000" step="5000" value="500000" />
           </div>
@@ -625,6 +843,10 @@
             <div class="input-shell">
               <span class="prefix currency-prefix">€</span>
               <input id="down-payment" type="number" min="0" step="1000" value="100000" />
+              <div class="stepper">
+                <button type="button" class="step-up">+</button>
+                <button type="button" class="step-down">−</button>
+              </div>
             </div>
             <input id="down-payment-slider" class="slider" type="range" min="0" max="500000" step="5000" value="100000" />
           </div>
@@ -632,11 +854,17 @@
           <div class="field">
             <div class="field-label">
               APR %
-              <span>Nominal annual rate</span>
+              <span>Nominal annual rate
+                <span class="tip-icon" tabindex="0" data-tip="APR is the nominal annual rate. Effective annual rate (EAR) = (1 + APR/k)^k − 1. Here k = 12 for monthly compounding.">?</span>
+              </span>
             </div>
             <div class="input-shell">
               <input id="apr" type="number" min="0" max="20" step="0.01" value="5" />
               <span class="suffix">%</span>
+              <div class="stepper">
+                <button type="button" class="step-up">+</button>
+                <button type="button" class="step-down">−</button>
+              </div>
             </div>
             <input id="apr-slider" class="slider" type="range" min="0.1" max="15" step="0.05" value="5" />
           </div>
@@ -649,6 +877,10 @@
             <div class="input-shell">
               <input id="years" type="number" min="1" max="60" step="1" value="30" />
               <span class="suffix">yrs</span>
+              <div class="stepper">
+                <button type="button" class="step-up">+</button>
+                <button type="button" class="step-down">−</button>
+              </div>
             </div>
             <input id="years-slider" class="slider" type="range" min="5" max="50" step="1" value="30" />
           </div>
@@ -662,10 +894,6 @@
       <!-- Results -->
       <section class="card">
         <div class="card-header">
-          <div class="fs-actions">
-            <button class="fs-btn fullscreen-open">⤢</button>
-            <button class="fs-btn fullscreen-close">×</button>
-          </div>
           <div>
             <div class="card-title">Mortgage results</div>
             <div class="card-subtitle">Payment & totals.</div>
@@ -674,7 +902,9 @@
 
         <div class="results">
           <p>
-            <strong>Monthly mortgage payment</strong>
+            <strong>Monthly mortgage payment
+              <span class="tip-icon" tabindex="0" data-tip="For a level-payment mortgage, the payment C is found from the present value of an annuity: PV = C × (1/r) × (1 − 1/(1 + r)^N), where r is the effective monthly rate and N is the number of months.">?</span>
+            </strong>
             <span id="monthly-payment" class="highlight">—</span>
           </p>
 
@@ -684,7 +914,16 @@
           </div>
 
           <p>
-            <strong>EAR</strong>
+            <strong>LTV
+              <span class="tip-icon" tabindex="0" data-tip="Loan-to-value (LTV) = Loan amount ÷ Home value. It measures how much of the property price is financed with debt.">?</span>
+            </strong>
+            <span id="ltv">—</span>
+          </p>
+
+          <p>
+            <strong>EAR
+              <span class="tip-icon" tabindex="0" data-tip="EAR (effective annual rate) = (1 + APR/12)^12 − 1. This reflects the true annual compounding of a nominal APR.">?</span>
+            </strong>
             <span id="ear">0.000000%</span>
           </p>
           <p>
@@ -692,7 +931,9 @@
             <span id="monthly-interest">0.000000%</span>
           </p>
           <p>
-            <strong>Future home value (EAR growth)</strong>
+            <strong>Future home value (EAR growth)
+              <span class="tip-icon" tabindex="0" data-tip="Future value formula: FV = PV × (1 + r)^n, where PV is today\'s home value, r is the effective annual growth rate and n is the number of years.">?</span>
+            </strong>
             <span id="future-value">—</span>
           </p>
           <p>
@@ -752,9 +993,11 @@
         <canvas id="balance-chart" height="200"></canvas>
       </section>
     </section>
-  </div>
-
-  <script>
+    <p style="text-align:center; margin-top:20px; font-size:0.82rem; color:var(--text-muted);">
+    Formulas referenced from <em>Berk &amp; DeMarzo – Corporate Finance</em>, 2025
+  </p>
+</div>
+<script>
     /* ---------- currency config ---------- */
     var currentCurrency = "EUR";
 
@@ -809,6 +1052,34 @@
       } catch (e) {
         // ignore storage errors
       }
+    }
+
+    function attachStepper(id) {
+      var input = document.getElementById(id);
+      if (!input) return;
+      var shell = input.closest(".input-shell");
+      if (!shell) return;
+      var stepper = shell.querySelector(".stepper");
+      if (!stepper) return;
+      var up = stepper.querySelector(".step-up");
+      var down = stepper.querySelector(".step-down");
+      if (!up || !down) return;
+
+      function adjust(delta) {
+        var step = parseFloat(input.step) || 1;
+        var min = input.min !== "" ? parseFloat(input.min) : -Infinity;
+        var max = input.max !== "" ? parseFloat(input.max) : Infinity;
+        var val = safeNumber(id);
+        if (!isFinite(val)) val = 0;
+        val = val + delta * step;
+        if (val < min) val = min;
+        if (val > max) val = max;
+        input.value = isFinite(val) ? val : "";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+
+      up.addEventListener("click", function () { adjust(1); });
+      down.addEventListener("click", function () { adjust(-1); });
     }
 
     /* ---------- mortgage calc + amortization ---------- */
@@ -879,6 +1150,7 @@
       var earEl = document.getElementById("ear");
       var monthlyInterestEl = document.getElementById("monthly-interest");
       var monthlyPaymentEl = document.getElementById("monthly-payment");
+      var ltvEl = document.getElementById("ltv");
       var futureValueEl = document.getElementById("future-value");
       var totalPaidEl = document.getElementById("total-paid");
 
@@ -887,6 +1159,10 @@
       if (earEl) earEl.textContent = (EAR * 100 || 0).toFixed(6) + "%";
       if (monthlyInterestEl) monthlyInterestEl.textContent = (monthlyRate * 100 || 0).toFixed(6) + "%";
       if (monthlyPaymentEl) monthlyPaymentEl.textContent = formatCurrency(payment || 0);
+      if (ltvEl) {
+        var ltv = home > 0 ? (loan / home) * 100 : 0;
+        ltvEl.textContent = home > 0 ? ltv.toFixed(1) + "%" : "—";
+      }
       if (futureValueEl) futureValueEl.textContent = formatCurrency(futureValue || 0);
       if (totalPaidEl) totalPaidEl.textContent = formatCurrency(totalPaid || 0);
 
@@ -1082,6 +1358,9 @@
       attachInputSync("apr", "apr-slider");
       attachInputSync("years", "years-slider");
 
+      // attach minimalist +/- steppers
+      ["home-value", "down-payment", "apr", "years"].forEach(attachStepper);
+
       // currency buttons
       document.querySelectorAll(".currency-btn").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -1176,4 +1455,5 @@
     });
   </script>
 </body>
+  
 </html>
